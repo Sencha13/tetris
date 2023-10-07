@@ -68,7 +68,7 @@ function arrayShuffle(array) {
   return array;
 }
 const GAME_SPEED = 800;    // ゲームの速さ
-let isCheat=2;
+let isCheat=0;
 
 let tetro = [];    //ブロック本体の配列
 let tetro_x = 3; //x座標
@@ -128,10 +128,10 @@ let score = 0;
 let onetoseven = [1,2,3,4,5,6,7];
 let tetro_strings = Array.from(arrayShuffle(onetoseven));
 
-// if(isCheat){ //I-spin paradise
-// for(let i=0; i<5; i++){
-//   tetro_strings[i]=7;
-// }}
+if(isCheat==2){ //I-spin paradise
+for(let i=0; i<5; i++){
+  tetro_strings[i]=7;
+}}
 
 let nextblock = document.getElementById("nextblock");
 let nextblocks = [];
@@ -155,8 +155,6 @@ can.height = SCREEN_H;
 can.style.border= "4px solid #555";
 
 let timerID = setInterval(droptetro, GAME_SPEED);
-let BGM = document.getElementById('bgm');
-BGM.volume=0.5;
 function drawText(text,font,color){
   let str = text;
   con.font=font;
@@ -240,7 +238,6 @@ function drawBlock(x, y, color, opacity) {
   con.strokeStyle="#111";
   con.strokeRect(px,py,BLOCK_SIZE,BLOCK_SIZE);
 }
-
 //　関数：画面全体を描画する
 function drawAll(){
   con.clearRect(0,0,SCREEN_W,SCREEN_H);
@@ -265,7 +262,6 @@ function drawAll(){
     clearInterval(timerID);
   }
 }
-
 //　関数：テトロミノが移動可能かを判定する
 function checkMove(mx, my, new_tetro){
   if(new_tetro == null){
@@ -284,7 +280,6 @@ function checkMove(mx, my, new_tetro){
   }
   return true
 }
-
 //　関数：テトロミノを回転させる
 function reverseRotate(){ //右回転 a->b
   let new_tetro =[];
@@ -306,7 +301,6 @@ function rotate(){ //左回転 b->a
   }
   return new_tetro;
 }
-
 //　関数：テトロミノをを固定する
 function fixtetro(){
   for(let y=0; y<TETRO_SIZE(); y++){
@@ -392,11 +386,6 @@ function droptetro(){
     tetro_y++;
     action=0;
   }else{
-    // for(waitingtime; waitingtime>=0; waitingtime--){
-    //   if(action==1){
-    //     waitingtime+=800;
-    //   }
-    // }
     fixtetro();
     clearline();
     tetroTypeSelect();
@@ -467,24 +456,6 @@ function SRS(direction,state){ //-1:left 1:right a1 b2 c3 d4
         isPossible=true;
       }
     }
-    // 軸を左右に動かす
-      // 0が90度（B）の場合は右，-90度（D）の場合は左へ移動（枠にくっつく）
-      // 0が0度（A），180度（C）の場合は回転した方向の逆へ移動　0度は２マス移動
-    // 軸を左右に動かす
-      // 0が90度（B）の場合は左，-90度（D）の場合は右へ移動（枠にくっつく）
-      // 0が0度（A），180度（C）の場合は回転した方向へ移動　180度は２マス移動
-    // 軸を上下に動かす
-      // 0が90度（B）の場合は1を下，-90度（D）の場合は1を上へ移動
-      // 0が0度（A），180度（C）の場合は
-      //   回転前のミノがB（2）なら1を上へ
-      //   回転前のミノがD（4）なら2を下へ移動
-      // 左回転なら２マス動かす
-    // 軸を上下に動かす
-      // 0が90度（B）の場合は2を上，-90度（D）の場合は2を下へ移動
-      // 0が0度（A），180度（C）の場合は
-      //   回転前のミノが右半分にある（B）なら2を下へ
-      //   回転前のミノが左半分にある（D）なら1を上へ移動
-      // 右回転なら２マス動かす
   }else{
     if(state%2==0){ //B,D
       if(checkMove(bd,0,ntetro)){ //1 (+-1,0)
@@ -619,26 +590,3 @@ function KeyDownFunc(e){
   }
   drawAll();
 }
-
-//固定待機
-//移動速度アップ
-//対戦
-
-//消したライン数
-//罫線
-//次のブロック
-//得点
-//逆回転
-//cキーで保留
-//nextblocks色付け
-//cssで見た目改善
-//ランダム整理
-//4ライン消したときTetris!の表示
-//T-spin判定&表示
-//T-spin (SRS)
-//壁・床でもT-spin判定
-//全消し判定
-//ホールド1回まで
-//落下予測
-//I-spin
-
