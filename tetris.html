@@ -2,6 +2,9 @@
 <html>
 <head>
   <title>Tetris</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <style>
 *{
@@ -43,13 +46,14 @@ canvas{
   margin-top: auto;
   display: inline-block;
 }
-#nextblock{
-  display: none;
+#nextblocks{
+  display: inline-block; margin-top: 10px; text-align: center;
 }
-div span{
+#nextblocks span, #hold{
   font-size: 32px;
   font: bolder;
 }
+
 </style>
 </head>
 <body>
@@ -63,7 +67,7 @@ div span{
   </div>
   <div id="info">
     <div style="display: flex;"><p>next:&nbsp;</p>
-      <div style="display: inline-block; margin-top: 10px; text-align: center;">
+      <div id="nextblocks">
         <b><span id="one"></span><br>
         <span id="two"></span><br>
         <span id="three"></span><br>
@@ -71,8 +75,9 @@ div span{
         <span id="five"></span></b>
       </div>
     </div>
-    <p id="score">score</p>
-    <p id="lines">0 lines</p>
+    <p>high score: <span id="hisc"></span></p>
+    <p>score: <span id="score">0</span></p>
+    <p><span id="lines">0</span> lines</p>
   </div>
 </div>
 <script type="text/javascript" src="tetris.js"></script>

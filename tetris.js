@@ -76,7 +76,7 @@ let tetro_y = 0; //y座標
 let field=[];
 if(isCheat){
 field = [
-// DTcannon
+// DT砲
 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -125,6 +125,9 @@ let tetro_type = 0;
 let game_over = false;
 let lines = 0;
 let score = 0;
+let highscore=localStorage.getItem('Tetris_hisc');
+if(highscore==null)highscore=0;
+$('#hisc').text(highscore);
 let onetoseven = [1,2,3,4,5,6,7];
 let tetro_strings = Array.from(arrayShuffle(onetoseven));
 
@@ -133,7 +136,6 @@ for(let i=0; i<5; i++){
   tetro_strings[i]=7;
 }}
 
-let nextblock = document.getElementById("nextblock");
 let nextblocks = [];
 const tetro_type_characters=['','L','J','T','S','Z','O','I'];
 for(let i=0; i<7; i++){
@@ -146,6 +148,7 @@ let state=0; //1:a 2:b 3:c 4:d
 let ntetro;
 let expecTetro=[];
 let expecTetro_y=0;
+let REN=0;
 let waitingtime=800;
 
 let can = document.getElementById("canvas");
@@ -154,7 +157,8 @@ can.width = SCREEN_W;
 can.height = SCREEN_H;
 can.style.border= "4px solid #555";
 
-let timerID = setInterval(droptetro, GAME_SPEED);
+let timerID = setInterval(droptetro, GAME_SPEED); //start
+
 function drawText(text,font,color){
   let str = text;
   con.font=font;
@@ -178,9 +182,9 @@ function drawTetris(text,font,color){
     $('#tetrissss').fadeOut();
   },1000);
 }
+drawText('START','40px sans-serif','white');
 init();
 drawAll();
-let anotherField=field.slice();
 
 // 罫線表示
 function ruledline(){
@@ -222,7 +226,7 @@ function tetroTypeSelect(){
   }
   nextblocks.push(tetro_type_characters[tetro_strings[6]]);
   nextblocks.shift();
-  for(let i=0;i<7;i++){
+  for(let i=0;i<5;i++){
     $(next_tag[i]).text(nextblocks[i]).css('color',TETRO_COLOR[tetro_strings[i]]);
   }
 }
@@ -260,6 +264,10 @@ function drawAll(){
   if(game_over){
     drawText("GAME OVER","40px serif","White");
     clearInterval(timerID);
+    if(highscore<score){
+      localStorage.setItem('Tetris_hisc',score);
+      drawTetris("New Record","sans-serif","")
+    }
   }
 }
 //　関数：テトロミノが移動可能かを判定する
@@ -281,7 +289,7 @@ function checkMove(mx, my, new_tetro){
   return true
 }
 //　関数：テトロミノを回転させる
-function reverseRotate(){ //右回転 a->b
+function right_rotate(){ //右回転 a->b
   let new_tetro =[];
   for(let y=0; y<TETRO_SIZE(); y++){
     new_tetro[y]=[];
@@ -291,7 +299,7 @@ function reverseRotate(){ //右回転 a->b
   }
   return new_tetro;
 }
-function rotate(){ //左回転 b->a
+function left_rotate(){ //左回転 b->a
   let new_tetro=[];
   for(let y=0; y<TETRO_SIZE(); y++){
     new_tetro[y]=[];
@@ -352,51 +360,60 @@ function clearline(){
         }
       }
       lines++;
-      $('#lines').text(lines+' lines');
+      $('#lines').text(lines);
     }
   }
   let clearlines=lines-currentclearlines;
   if(clearlines==4){
-    drawTetris("テトリス！","sans-serif","yellow");
+    drawTetris("Tetris!","sans-serif","yellow");
   }
   if(T_around >= 3){
     drawTetris('T-spin!','sans-serif','#d6d');
     score+=50*(clearlines+1);
   }
-  if(clearlines){ //Perfect Clearか
+  if(clearlines){ //Perfect Clearか & REN++
+    REN++;
     let isPerfect=true;
-    for(let py=0; py<FIELD_ROW; py++){
-      for(let px=0; px<FIELD_COL; px++){
-        if(field[py][px])isPerfect=false;
-      }
+    for(let px=0; px<FIELD_COL; px++){
+      if(field[19][px])isPerfect=false;
     }
     if(isPerfect){
-      if(clearlines==4)drawTetris('全消しテトリス!!!','serif','orange');
-      else drawTetris('全消し!','sans-serif','skyblue');
-      score+=150;
+      if(clearlines==4){
+        drawTetris('Perfect Tetris!!!','serif','orange');
+        score+=300;
+      }else{
+        drawTetris('Perfect Clear!!','sans-serif','skyblue');
+        score+=200;
+      }
     }
-  }
-  score+= 10*clearlines**2;
-  $('#score').text('score: '+score);
+    console.log(REN);
+  }else REN=0;
+  score+=10*(clearlines**2+REN);
+  $('#score').text(score);
+}
+function ToTheNext(){
+  fixtetro();
+  clearline();
+  tetroTypeSelect();
+  tetro_x=3;
+  tetro_y=0;
 }
 
 //　関数：テトリスを落下させる
 function droptetro(){
+  if(isDroppable){
   if(checkMove(0,1)){
     tetro_y++;
     action=0;
   }else{
-    fixtetro();
-    clearline();
-    tetroTypeSelect();
-    tetro_x=3;
-    tetro_y=0;
-
+    //waiting
+    ToTheNext();
     if(!checkMove(0,0)){
       game_over=true;
     }
   }
   drawAll();
+}
 }
 
 // function hold
@@ -416,7 +433,7 @@ function hold(){
 }
 
 //スーパーローテーションシステム
-function SRS(direction,state){ //-1:left 1:right a1 b2 c3 d4
+function SRS(direction,state){ //left:-1 right:1, a1 b2 c3 d4
   if(state==0)state=4;
   if(state==5)state=1;
   let ac=(state-2)*direction;
@@ -520,42 +537,53 @@ function expectation(){
   }
 }
 
+// $(window).keydown(function(e){
+//   if(e.keyCode==32 && !field){
+//     console.log("a");
+//     init();
+//     drawAll();
+//   }
+// })
+
 //　関数：キーが押されたときに呼ばれる関数
 let isPossible=false; //回転できるか
+let isDroppable=true;
 document.addEventListener('keydown', KeyDownFunc);
 function KeyDownFunc(e){
   if(game_over) return;
-
-  var key_code = e.keyCode;
-  switch(key_code){
-    case 37: //left
+  switch(e.code){
+    case 'ArrowLeft':
       if(checkMove(-1,0)){
         tetro_x--;
       }
       break;
-    case 39: //right
+    case 'ArrowRight':
       if(checkMove(1,0)){
         tetro_x++;
       }
       break;
-    case 40: //down
+    case 'ArrowDown':
       if(checkMove(0,1)){
         tetro_y++;
         action=0;
+        isDroppable=false;
+      }else{
+        setTimeout(function(){isDroppable=true;},1000);
       };
       break;
-    case 32: //space
+    case 'Space':
       while(checkMove(0,1)){
         tetro_y++;
         action=0;
       }
-      droptetro();
+      ToTheNext();
+      isDecide=false;
       break;
-    case 90: //z 左回転
-      ntetro=rotate();
+    case 'KeyZ': //左回転
+      ntetro=left_rotate();
       if(checkMove(0,0,ntetro)){
         isPossible=true;
-      }else SRS(-1,(state-1));
+      }else SRS(-1, state-1);
       if(isPossible){
         tetro=ntetro;
         action=1;
@@ -564,12 +592,12 @@ function KeyDownFunc(e){
       }
       isPossible=false;
       break;
-    case 38: //up
-    case 88: //x 右回転
-      ntetro=reverseRotate();
+    case 'ArrowUp':
+    case 'KeyX': //右回転
+      ntetro=right_rotate();
       if(checkMove(0,0,ntetro)){
         isPossible=true;
-      }else SRS(1,(state+1));
+      }else SRS(1, state+1);
       if(isPossible){
         tetro=ntetro;
         action=1;
@@ -578,15 +606,50 @@ function KeyDownFunc(e){
       }
       isPossible=false;
       break;
-    case 67: //c
+    case 'KeyC': //保留
       if(holdLimit){
         hold();
         holdLimit=0;
       }
       break;
-    case 83: //s
-      BGM.play();
-      break;
   }
   drawAll();
+  // window.requestAnimationFrame(KeyDownFunc);
 }
+// window.requestAnimationFrame(KeyDownFunc);
+
+document.addEventListener('keyup',(e)=>{
+  if(e.code=="ArrowDown"){
+    isDroppable=true;
+  }
+})
+
+//<to do>
+//Title
+//TSDとTSmini区別
+//移動速度アップ
+//(retry)
+//対戦
+
+//<done>
+//消したライン数
+//罫線
+//次のブロック
+//得点
+//逆回転
+//cキーで保留
+//nextblocks色付け
+//cssで見た目改善
+//ランダム整理
+//4ライン消したときTetris!の表示
+//T-spin判定&表示
+//T-spin (SRS)
+//壁・床でもT-spin判定
+//全消し判定
+//ホールド1回まで
+//落下予測
+//I-spin
+//High score
+//固定待機(だいたい)
+//REN
+
